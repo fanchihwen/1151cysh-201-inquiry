@@ -3,7 +3,7 @@
 - 更新：2026-09-18，Codex @ FAN_WINDOWS。
 - 專案目標：為嘉中 201 班製作「科學邊界與貨物崇拜」探究短講，嵌入既有 W1–W4 課程；保留志文調色與卡片版型。
 - 目前階段：短講雙版本交付完成，待教師試講與教室投影實測。
-- Git：`main`／`origin/main`；本次收工提交待推送，完成後回填。
+- Git：`main`／`origin/main`；成果提交 `979a27a` 已推送；收工同步狀態另作一筆提交。
 - Repo：https://github.com/fanchihwen/1151cysh-201-inquiry
 
 ## 本次成果
@@ -30,4 +30,13 @@
 2. 依實際課堂反應再決定修改配時；維持原配色、版型。B 版「25 年」仍標註待查證。
 3. OKF v0.2 已啟用，但索引引用的 `cargo-cult-and-demarcation.md` 與 `pedagogical-specs.md` 尚不存在；不應回報索引完整有效，也未為通過驗證而補造內容。
 
-高頻校樣、渲染圖與製作腳本位於 `.codex-build/`，不提交、不鏡像。正式資料單向鏡像至 `G:\我的雲端硬碟\#AI\1151嘉中_201探究`。Obsidian 駕駛艙：`G:\我的雲端硬碟\secondbrain\創作庫\教學素材\1151嘉中_201探究_Dashboard.md`。跨 Agent、chezmoi、Obsidian、G: 各層同步結果在推送後補記。
+高頻校樣、渲染圖與製作腳本位於 `.codex-build/`，不提交、不鏡像。正式資料單向鏡像至 `G:\我的雲端硬碟\#AI\1151嘉中_201探究`。Obsidian 駕駛艙：`G:\我的雲端硬碟\secondbrain\創作庫\教學素材\1151嘉中_201探究_Dashboard.md`。
+
+## 收工同步結果
+
+- 專案成果 `979a27a` 已推送 GitHub；已執行 `git pull --rebase origin main`。
+- G: 共 21 份正式檔案完成 SHA-256 核對，無 G-only 檔案、無雜湊差異；本紀錄更新後再核對一次。Google Drive 伺服器端上傳狀態未另行驗證。
+- Obsidian 駕駛艙、`1151嘉中_201探究/專案工作流程.md` 與 Skills 清單已更新。實掃 300 份 SKILL.md（頂層 166、巢狀 44、系統 6、插件 84），更新 21 個現存插件版本入口，未安裝或升級。
+- 跨 Agent：RuleVersion 2.1、衝突 0、既有待審 4；當前全域來源雜湊已匯出，不重複 Export、不 Apply。規則庫與遠端一致，G: 30 份追蹤檔雜湊一致。
+- chezmoi：`master` 與 `origin/master` 一致；本機、白名單範本及納管範本的六項可攜偏好一致，沒有本次核准變更需另提交流程。
+- 留待審查的既有 target 差異：完整 `config.toml`、`local-whisper-subtitles` 的 Skill／腳本、`officecli/SKILL.md`、已刪除的 `__pycache__`。未納入本次同步，不複製完整設定或快取。
