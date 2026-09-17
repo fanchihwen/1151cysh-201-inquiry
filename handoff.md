@@ -25,3 +25,6 @@
 4. **規格文檔與故事庫**：
    - [嘉中201探究短講_Google簡報完整設計規格.md](file:///C:/AI/1151嘉中_201探究/嘉中201探究短講_Google簡報完整設計規格.md)
    - [source/2.貨物科學與科學小故事.txt](file:///C:/AI/1151嘉中_201探究/source/2.貨物科學與科學小故事.txt)
+   - [source/115-探究W1-W4  的副本_志文版本2.pptx](file:///C:/AI/1151嘉中_201探究/source/115-探究W1-W4%20%20的副本_志文版本2.pptx)
+5. **Obsidian 第二大腦駕駛艙**：
+   - [1151嘉中_201探究_Dashboard.md](file:///G:/我的雲端硬碟/secondbrain/創作庫/教學素材/1151嘉中_201探究_Dashboard.md)
