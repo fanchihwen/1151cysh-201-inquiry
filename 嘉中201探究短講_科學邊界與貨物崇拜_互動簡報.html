@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嘉中 201 探究短講：木頭耳機能召喚飛機嗎？——探索科學邊界與貨物崇拜</title>
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 15%, #1e293b 0%, #0f172a 65%, #020617 100%);
+      --card-bg: rgba(30, 41, 59, 0.88);
+      --card-border: rgba(56, 189, 248, 0.35);
+      --text-main: #ffffff;
+      --text-muted: #cbd5e1;
+      --cyan: #00f2fe;
+      --blue: #38bdf8;
+      --amber: #f59e0b;
+      --rose: #ff416c;
+      --green: #10b981;
+      --purple: #a855f7;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    html {
+      font-size: clamp(16px, 1.25vw, 22px);
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    #bg-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+    }
+
+    /* Top HUD / Progress */
+    #top-bar {
+      height: 60px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 36px;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .hud-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge {
+      background: rgba(0, 242, 254, 0.2);
+      border: 1.5px solid var(--cyan);
+      color: var(--cyan);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      color: var(--text-main);
+      padding: 8px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      border-color: var(--blue);
+      transform: translateY(-2px);
+    }
+    .icon-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Deck Slide Container */
+    #deck-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+      padding: 20px 48px;
+    }
+
+    .slide {
+      position: absolute;
+      width: 95%;
+      max-width: 1360px;
+      height: 88%;
+      max-height: 820px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 2px solid var(--card-border);
+      border-radius: 28px;
+      padding: 40px 56px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      opacity: 0;
+      transform: scale(0.96) translateY(20px);
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    .slide::-webkit-scrollbar {
+      width: 8px;
+    }
+    .slide::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.4);
+      border-radius: 4px;
+    }
+
+    /* Slide Header - Big & Visible */
+    .slide-header {
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .slide-tag {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .slide-title {
+      font-size: 2.8rem;
+      font-weight: 900;
+      line-height: 1.25;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-desc {
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* Sub-step indicator dots */
+    .step-dots {
+      position: absolute;
+      right: 0;
+      top: 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .step-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      transition: all 0.3s ease;
+    }
+    .step-dot.active {
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      transform: scale(1.25);
+    }
+
+    /* Progressive Reveal Classes */
+    .reveal-step {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      display: none;
+    }
+    .reveal-step.revealed {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      display: flex;
+    }
+    .reveal-step.dimmed {
+      opacity: 0.45 !important;
+      transform: scale(0.98) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    .reveal-step.focused {
+      opacity: 1 !important;
+      border-color: var(--cyan) !important;
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.35) !important;
+      transform: scale(1.02) !important;
+    }
+
+    /* Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      flex: 1;
+      align-items: stretch;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      flex: 1;
+      align-items: stretch;
+    }
+
+    /* Cards - Large Text for Projector */
+    .feature-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.35s ease;
+    }
+    .feature-card:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 12px 35px rgba(0, 242, 254, 0.2);
+    }
+    .feature-card h3 {
+      font-size: 1.85rem;
+      color: #ffffff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .feature-card p, .feature-card li {
+      font-size: 1.45rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      width: fit-content;
+    }
+    .pill-cyan { background: rgba(0, 242, 254, 0.2); color: var(--cyan); border: 2px solid var(--cyan); }
+    .pill-amber { background: rgba(245, 158, 11, 0.2); color: var(--amber); border: 2px solid var(--amber); }
+    .pill-rose { background: rgba(255, 65, 108, 0.2); color: var(--rose); border: 2px solid var(--rose); }
+    .pill-green { background: rgba(16, 185, 129, 0.2); color: var(--green); border: 2px solid var(--green); }
+    .pill-purple { background: rgba(168, 85, 247, 0.2); color: var(--purple); border: 2px solid var(--purple); }
+
+    .sim-panel {
+      background: rgba(15, 23, 42, 0.92);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sim-btn {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: white;
+      padding: 16px 32px;
+      border-radius: 14px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+    }
+    .sim-btn:hover {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      transform: scale(1.02);
+      box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6);
+    }
+    .sim-btn:active {
+      transform: scale(0.98);
+    }
+
+    .sim-btn-danger {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      box-shadow: 0 6px 20px rgba(225, 29, 72, 0.5);
+    }
+    .sim-btn-danger:hover {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      box-shadow: 0 8px 25px rgba(244, 63, 94, 0.6);
+    }
+
+    /* Bottom Bar */
+    #bottom-bar {
+      height: 72px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 48px;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      margin: 0 32px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--purple));
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 2px solid rgba(56, 189, 248, 0.5);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+      transform: translateY(-2px);
+    }
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    #notes-modal {
+      position: fixed;
+      right: 32px;
+      bottom: 90px;
+      width: 480px;
+      max-height: 560px;
+      background: rgba(15, 23, 42, 0.97);
+      backdrop-filter: blur(24px);
+      border: 2px solid var(--cyan);
+      border-radius: 24px;
+      padding: 28px;
+      z-index: 100;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+    }
+    #notes-modal.show {
+      display: flex;
+    }
+    .notes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .notes-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .notes-body {
+      font-size: 1.15rem;
+      line-height: 1.75;
+      color: #cbd5e1;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Top Bar -->
+  <header id="top-bar">
+    <div class="hud-title">
+      <span>🧬 嘉中 201 探究短講</span>
+      <span class="badge">教室投影高亮版 · 逐步聚焦</span>
+    </div>
+    <div class="controls-group">
+      <button class="icon-btn" id="btn-audio" title="切換音效 (M)">🔊 音效: 開</button>
+      <button class="icon-btn" id="btn-notes" title="切換講者備忘 (P)">📝 講者備忘</button>
+      <button class="icon-btn" id="btn-open-tab" style="display:none;" title="在新分頁全螢幕開啟">↗ 全螢幕獨立頁</button>
+      <button class="icon-btn" id="btn-fullscreen" title="全螢幕 (F)">⛶ 全螢幕</button>
+    </div>
+  </header>
+
+  <!-- Deck Slides -->
+  <main id="deck-container">
+
+    <!-- SLIDE 1: 封面 -->
+    <section class="slide active" data-slide="1" data-total-steps="1">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 24px;">
+        <span class="pill pill-cyan" style="font-size: 1.25rem; padding: 8px 24px;">嘉義高中 201 班 · 自然科學探究與實作專題短講</span>
+        <h1 style="font-size: 3.8rem; font-weight: 900; line-height: 1.2; max-width: 1100px; background: linear-gradient(135deg, #ffffff, #38bdf8, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          木頭耳機能召喚飛機嗎？
+        </h1>
+        <h2 style="font-size: 2.1rem; color: #94a3b8; font-weight: 600; max-width: 950px;">
+          探索科學的邊界：從亞里斯多德、波普爾到費曼的「貨物崇拜」
+        </h2>
+        <div style="display: flex; gap: 24px; margin-top: 12px;">
+          <div style="background: rgba(15,23,42,0.9); border: 2px solid rgba(56,189,248,0.4); border-radius: 18px; padding: 16px 28px; display: flex; align-items: center; gap: 16px;">
+            <span style="font-size: 2.4rem;">🎧</span>
+            <div style="text-align: left;">
+              <div style="font-size: 1.05rem; color: var(--cyan); font-weight: 800;">費曼的荒島警鐘</div>
+              <div style="font-size: 1.35rem; font-weight: 700;">外表有模有樣，靈魂缺席</div>
+            </div>
+          </div>
+          <div style="background: rgba(15,23,42,0.9); border: 2px solid rgba(245,158,11,0.4); border-radius: 18px; padding: 16px 28px; display: flex; align-items: center; gap: 16px;">
+            <span style="font-size: 2.4rem;">🦢</span>
+            <div style="text-align: left;">
+              <div style="font-size: 1.05rem; color: var(--amber); font-weight: 800;">波普爾的黑天鵝</div>
+              <div style="font-size: 1.35rem; font-weight: 700;">敢於被推翻，才叫科學</div>
+            </div>
+          </div>
+        </div>
+        <button class="sim-btn" onclick="deck.stepForward()" style="margin-top: 20px; font-size: 1.45rem; padding: 16px 44px;">
+          🚀 開始破案探索 (按空白鍵或點擊)
+        </button>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Hook 衝突頁 (3步揭示) -->
+    <section class="slide" data-slide="2" data-total-steps="3">
+      <div class="slide-header">
+        <div class="slide-tag"><span>⚔️</span> 靈魂拷問 · 認知衝突</div>
+        <h2 class="slide-title">哪一個，才是真正的「科學」？</h2>
+        <div class="step-dots" id="dots-slide-2">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <!-- Step 1: 候選者 A -->
+        <div class="feature-card reveal-step revealed" data-step="1" id="hook-card-1">
+          <span class="pill pill-purple">候選者 A</span>
+          <h3>⚡ 量子轉運共振手環</h3>
+          <p style="margin-bottom: 16px;">宣稱導入「次微米量子諧振頻率」，專利磁場圖譜齊全，附帶國際機構檢驗認證（售價 $3,990）。</p>
+          <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 16px; border-left: 5px solid var(--purple);">
+            <div style="font-size: 1.3rem; color: #cbd5e1;">宣傳語：「提升微循環，消除人體負能量，科學見證奇蹟！」</div>
+          </div>
+        </div>
+
+        <!-- Step 2: 候選者 B -->
+        <div class="feature-card reveal-step" data-step="2" id="hook-card-2">
+          <span class="pill pill-cyan">候選者 B</span>
+          <h3>📊 嘉中高二探究 A+ 滿分報告</h3>
+          <p style="margin-bottom: 16px;">單擺週期實驗與理論值差了 0.4 秒，組長害怕被扣分，偷偷把數據改小，做出完美無瑕的線性圖表！</p>
+          <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 16px; border-left: 5px solid var(--cyan);">
+            <div style="font-size: 1.3rem; color: #cbd5e1;">組長心聲：「數據吻合課本公式才能拿高分，誤差太丟臉了！」</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: 揭露真相 -->
+      <div class="reveal-step" data-step="3" id="hook-reveal-box" style="margin-top: 24px; padding: 22px 32px; background: rgba(255,65,108,0.25); border: 2px solid var(--rose); border-radius: 18px; align-items: center; justify-content: space-between;">
+        <div style="font-size: 1.7rem; font-weight: 900; color: #ffffff;">
+          🚨 殘酷真相：兩者都是「假科學」！穿著白袍、畫滿漂亮圖表，不代表擁有科學的靈魂！
+        </div>
+        <button class="sim-btn sim-btn-danger" onclick="deck.stepForward()" style="padding: 10px 24px; font-size: 1.2rem;">
+          進入第一關 ➔
+        </button>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: 雙 GPS 導航 (4步聚焦) -->
+    <section class="slide" data-slide="3" data-total-steps="4">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🧭</span> 雙 GPS 定位 · 探究地圖</div>
+        <h2 class="slide-title">今天短講的四個探案關卡</h2>
+        <div class="step-dots" id="dots-slide-3">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="feature-card reveal-step revealed" data-step="1" id="gps-card-1">
+          <span class="pill pill-cyan">第一站 · 字源考古</span>
+          <h3>📜 科學的身世之謎</h3>
+          <p>亞里斯多德 Episteme ➔ 羅馬 Scientia ➔ 1833 休厄爾首創 Scientist ➔ 日本西周翻譯「分科之學」。</p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="2" id="gps-card-2">
+          <span class="pill pill-amber">第二站 · 波普爾之刀</span>
+          <h3>🔪 分界問題 (Demarcation)</h3>
+          <p>什麼是真正的科學？可證偽性 (Falsifiability)——敢冒被證明是錯的風險，才叫科學！</p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="3" id="gps-card-3">
+          <span class="pill pill-rose">第三站 · 費曼照妖鏡</span>
+          <h3>📦 貨物崇拜科學 (Cargo Cult)</h3>
+          <p>南太平洋竹子跑道、密立根油滴的集體自欺，直擊嘉中高二探究報告的痛點。</p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="4" id="gps-card-4">
+          <span class="pill pill-green">第四站 · 實戰裝備</span>
+          <h3>🛡️ 科學偵測雙稜鏡</h3>
+          <p>全班破案挑戰賽！交付帶出教室的隨身思考武器：波普爾之鏡照對手，費曼之鏡照自己。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: 字源考古 (4步演進) -->
+    <section class="slide" data-slide="4" data-total-steps="4">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🏛️</span> 第一站 · 術語演進</div>
+        <h2 class="slide-title">「科學」兩個字，是怎麼被發明出來的？</h2>
+        <div class="step-dots" id="dots-slide-4">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <div class="feature-card reveal-step revealed" data-step="1" style="border-left: 8px solid var(--cyan); margin-bottom: 16px;">
+          <span class="pill pill-cyan">西元前 4 世紀 · 古希臘</span>
+          <h3>ἐπιστήμη (Episteme) vs δόξα (Doxa)</h3>
+          <p>亞里斯多德沒聽過 "Science"！他用的是 <strong>Episteme（有系統、可被傳授的真知）</strong>，用來反擊個人憑感覺、道聽途說的主觀意見 <strong>(Doxa)</strong>。</p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="2" style="border-left: 8px solid var(--blue); margin-bottom: 16px;">
+          <span class="pill pill-cyan">西元前 1 世紀 · 古羅馬</span>
+          <h3>Scientia：去知道的意志</h3>
+          <p>古羅馬西塞羅翻譯希臘哲學時創造了拉丁文 <strong>"Scientia"</strong>（字根 scire：去知道）。在中世紀，這個字泛指一切學問與知識。</p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="3" style="border-left: 8px solid var(--amber); margin-bottom: 16px;">
+          <span class="pill pill-amber">1833 年 · 英國</span>
+          <h3>威廉·休厄爾首創 "Scientist"（科學家）</h3>
+          <p>英國哲學家休厄爾提出：研究物質世界的人不該叫「自然哲學家」！他模仿 "Artist"（藝術家）首創了 <strong>"Scientist"</strong>，科學正式專指自然科學。</p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="4" style="border-left: 8px solid var(--green);">
+          <span class="pill pill-green">1874 年 · 日本與華語圈</span>
+          <h3>日本西周翻譯「分科之學」➔ 梁啟超引進</h3>
+          <p>明治學者西周翻譯為<strong>「科學」</strong>，取其「分門別類、分科治學」之意；後經梁啟超等人引進，成為五四運動「賽先生」的代名詞。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: 分界問題 (3步對比) -->
+    <section class="slide" data-slide="5" data-total-steps="3">
+      <div class="slide-header">
+        <div class="slide-tag"><span>⚖️</span> 第二站 · 哲學分界</div>
+        <h2 class="slide-title">波普爾之刀：科學、非科學與偽科學</h2>
+        <div class="step-dots" id="dots-slide-5">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <!-- Step 1: 科學 -->
+        <div class="feature-card reveal-step revealed" data-step="1" style="border-top: 8px solid var(--green);">
+          <span class="pill pill-green">科學 (Science)</span>
+          <h3>可證偽性 (Falsifiability)</h3>
+          <p><strong>敢於冒著被證明是錯的風險！</strong><br><br>
+          愛因斯坦預言光線會因重力彎曲：如果日全蝕觀測沒有彎曲，他就承認相對論是錯的！<br><br>
+          <em style="color: var(--green); font-weight: 700;">「隨時準備接受檢驗與推翻。」</em></p>
+        </div>
+
+        <!-- Step 2: 非科學 -->
+        <div class="feature-card reveal-step" data-step="2" style="border-top: 8px solid var(--cyan);">
+          <span class="pill pill-cyan">非科學 (Non-science)</span>
+          <h3>無意偽裝的領域</h3>
+          <p><strong>文學、詩歌、藝術、宗教、哲學。</strong><br><br>
+          我們無法做實驗證明「這首詩美不美」。它們不具備可證偽性，但擁有無可替代的人文價值。<br><br>
+          <em style="color: var(--blue); font-weight: 700;">「不必強求用科學度量一切。」</em></p>
+        </div>
+
+        <!-- Step 3: 偽科學 -->
+        <div class="feature-card reveal-step" data-step="3" style="border-top: 8px solid var(--rose);">
+          <span class="pill pill-rose">偽科學 (Pseudoscience)</span>
+          <h3>披著羊皮的狼</h3>
+          <p><strong>明明不可證偽，卻刻意宣稱是科學！</strong><br><br>
+          算命占星：準了是我神；不準是因為「你心態不誠」、「今天水逆磁場亂」。<br><br>
+          <em style="color: var(--rose); font-weight: 700;">「永遠不會錯＝永遠不是科學！」</em></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: 黑天鵝互動實驗室 (2步) -->
+    <section class="slide" data-slide="6" data-total-steps="2">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🦢</span> 互動實驗室 01 · 證偽衝擊</div>
+        <h2 class="slide-title">一萬隻白天鵝，能證明「所有天鵝皆白」嗎？</h2>
+        <div class="step-dots" id="dots-slide-6">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="sim-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 1.4rem; font-weight: 700; color: #cbd5e1;">當前觀測天鵝總數：</span>
+            <span id="swan-counter" style="font-size: 2.2rem; font-weight: 900; color: var(--cyan);">0 隻</span>
+          </div>
+          <div style="background: rgba(0,0,0,0.5); border-radius: 16px; padding: 20px; min-height: 160px; max-height: 180px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 10px;" id="swan-lake">
+            <span style="color: var(--text-muted); font-size: 1.3rem;">點擊下方按鈕開始觀測天鵝湖...</span>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <button class="sim-btn" style="flex: 1;" onclick="addSwans(10)">🔍 觀測 10 隻白天鵝</button>
+            <button class="sim-btn sim-btn-danger" style="flex: 1;" onclick="triggerBlackSwan()">💥 召喚「黑天鵝」！</button>
+          </div>
+        </div>
+
+        <div class="feature-card" style="justify-content: center; background: rgba(15,23,42,0.9);">
+          <div id="swan-theory-status">
+            <span class="pill pill-cyan">假說檢驗中</span>
+            <h3 style="font-size: 2rem; margin: 12px 0;">假說：所有天鵝皆為白色</h3>
+            <p style="font-size: 1.45rem; line-height: 1.7; color: #cbd5e1;">
+              你在歐洲看了 1 萬隻、10 萬隻、甚至 100 萬隻白天鵝，你都<strong>無法在邏輯上徹底證實</strong>假說。<br><br>
+              然而，只要在澳洲看到<strong>「1 隻黑天鵝」</strong>，累積千年的假說瞬間宣告破產！
+            </p>
+            <div style="margin-top: 20px; padding: 16px; border-radius: 12px; background: rgba(56,189,248,0.15); border-left: 6px solid var(--cyan); font-weight: 700; font-size: 1.35rem; color: #ffffff;">
+              💡 波普爾核心：科學理論永遠不可能被「完全證明」，只能被「暫時未推翻」！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: 費曼與貨物崇拜 (2步聚焦) -->
+    <section class="slide" data-slide="7" data-total-steps="2">
+      <div class="slide-header">
+        <div class="slide-tag"><span>✈️</span> 第三站 · 費曼的照妖鏡</div>
+        <h2 class="slide-title">費曼傳奇演說：貨物崇拜科學 (Cargo Cult Science)</h2>
+        <div class="step-dots" id="dots-slide-7">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="feature-card reveal-step revealed" data-step="1">
+          <span class="pill pill-amber">荒島故事</span>
+          <h3 style="color: var(--amber);">南太平洋小島的木頭耳機</h3>
+          <p style="line-height: 1.8;">
+            二戰美軍降落小島帶來大量物資（Cargo）。戰後美軍撤離，原住民為了讓飛機重返：<br><br>
+            • 在泥地上開闢出極平整的跑道並生起篝火<br>
+            • 用竹子搭建塔台、插上草繩天線<br>
+            • 戴著原木雕刻的耳機天天虔誠祈禱<br><br>
+            <strong style="color: var(--rose);">👉 飛機永遠不再降落！因為形式完美，物理缺席！</strong>
+          </p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="2" style="border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.08);">
+          <span class="pill pill-rose">費曼的靈魂直擊</span>
+          <h3 style="color: #ffffff;">學到了形式，丟失了靈魂</h3>
+          <p style="line-height: 1.8; color: #cbd5e1;">
+            費曼指出：許多學術論文與探究報告，就像那副<strong>木頭耳機</strong>！<br><br>
+            • 實驗步驟很工整、長條圖很精美<br>
+            • 統計檢定很炫砲、權威文獻引了一堆<br><br>
+            ⚠️ 在光鮮外殼底下，卻<strong>完全缺乏最底層的「科學誠實」與自我懷疑精神！</strong>
+          </p>
+          <div style="margin-top: 18px; font-weight: 800; color: var(--amber); font-size: 1.45rem;">
+            這就是「貨物崇拜科學」——形式的巨人，誠實的侏儒！
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: 貨物崇拜模擬跑道 -->
+    <section class="slide" data-slide="8" data-total-steps="1">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🎮</span> 互動實驗室 02 · 跑道實測</div>
+        <h2 class="slide-title">你能用木頭耳機召喚運輸機嗎？</h2>
+      </div>
+      <div class="grid-2">
+        <div class="sim-panel">
+          <h3 style="font-size: 1.8rem; color: var(--cyan);">儀式整備檢核表</h3>
+          <label style="display: flex; align-items: center; gap: 16px; cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.06); font-size: 1.35rem;">
+            <input type="checkbox" id="chk-runway" onchange="soundEngine.playClick()" style="width: 24px; height: 24px;">
+            <span>🌿 1. 開闢平整泥土跑道，生起信號篝火</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 16px; cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.06); font-size: 1.35rem;">
+            <input type="checkbox" id="chk-tower" onchange="soundEngine.playClick()" style="width: 24px; height: 24px;">
+            <span>🎋 2. 搭建竹子管制塔台，插上草繩天線</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 16px; cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.06); font-size: 1.35rem;">
+            <input type="checkbox" id="chk-headphone" onchange="soundEngine.playClick()" style="width: 24px; height: 24px;">
+            <span>🪵 3. 雕刻一副原木耳機戴在頭上聆聽</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 16px; cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.06); font-size: 1.35rem;">
+            <input type="checkbox" id="chk-faith" onchange="soundEngine.playClick()" style="width: 24px; height: 24px;">
+            <span>🙏 4. 虔誠祈禱，深信物資必從天而降</span>
+          </label>
+
+          <button class="sim-btn" id="btn-call-plane" onclick="runCargoPlaneSim()" style="margin-top: 10px;">
+            📡 發送信號！召喚 C-47 運輸機
+          </button>
+        </div>
+
+        <div class="feature-card" style="justify-content: center; text-align: center;" id="plane-radar-box">
+          <div style="font-size: 4.5rem; margin-bottom: 16px;" id="plane-icon">🌫️</div>
+          <h3 id="plane-status-title" style="font-size: 2rem; color: #94a3b8;">天空一片死寂...</h3>
+          <p id="plane-status-desc" style="color: var(--text-muted); line-height: 1.8; margin-top: 12px; font-size: 1.45rem;">
+            勾選左側全部儀式，測試看看飛機會不會因為你的虔誠而降落。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: 密立根油滴實驗爬樓梯 (2步) -->
+    <section class="slide" data-slide="9" data-total-steps="2">
+      <div class="slide-header">
+        <div class="slide-tag"><span>📉</span> 科學史小故事 · 權威偏誤</div>
+        <h2 class="slide-title">連大科學家都會自欺：密立根油滴的「爬樓梯」</h2>
+        <div class="step-dots" id="dots-slide-9">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="sim-panel reveal-step revealed" data-step="1">
+          <h3 style="color: var(--cyan); font-size: 1.7rem;">歷史測量值演進滑桿</h3>
+          <p style="font-size: 1.3rem; color: var(--text-muted);">
+            密立根測量電子電荷 e，因為空氣黏滯係數偏低導致數據偏小。拖動滑桿看後續科學家的反應：
+          </p>
+          <div style="display: flex; align-items: center; gap: 20px; margin: 12px 0;">
+            <span style="font-weight: 800; color: var(--amber); font-size: 1.5rem;">年份：<span id="slider-year">1910</span></span>
+            <input type="range" id="year-slider" min="1910" max="1935" step="5" value="1910" oninput="updateMillikanSim(this.value)" style="flex: 1; height: 12px; cursor: pointer;">
+          </div>
+          <div style="background: rgba(0,0,0,0.5); border-radius: 14px; padding: 18px;">
+            <div style="display: flex; justify-content: space-between; font-size: 1.35rem; margin-bottom: 8px;">
+              <span>當期公佈測量值：</span>
+              <span id="millikan-val" style="font-weight: 900; color: var(--cyan);">1.592 × 10⁻¹⁹ C</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 1.35rem; color: #10b981;">
+              <span>現代真實精準值：</span>
+              <span>1.602 × 10⁻¹⁹ C</span>
+            </div>
+          </div>
+          <div id="millikan-psychology" style="font-size: 1.35rem; color: #f59e0b; line-height: 1.6; padding: 14px; background: rgba(245,158,11,0.15); border-radius: 12px;">
+            🧠 [1910 年記錄] 密立根是大師！我測出來太高肯定是我算錯了，挑幾個數據讓它靠近密立根吧...
+          </div>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="2" style="justify-content: center; background: rgba(15,23,42,0.92); border: 2px solid var(--rose);">
+          <span class="pill pill-rose">震撼心法</span>
+          <h3 style="font-size: 2.2rem; color: #ffffff; margin-bottom: 16px;">費曼第一原則 (First Principle)</h3>
+          <blockquote style="font-size: 1.7rem; font-style: italic; color: var(--cyan); line-height: 1.6; border-left: 6px solid var(--cyan); padding-left: 20px; margin: 16px 0;">
+            「第一原則是你絕對不能欺騙自己——<br>而你自己，就是最容易被欺騙的人！」
+          </blockquote>
+          <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.4rem;">
+            當實驗數據不如預期時，我們大腦的第一反應往往是「找藉口合理化它」。<br>
+            科學誠實不是對別人誠實，而是<strong>有勇氣對自己進行無情的自我審查</strong>！
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: 嘉中 201 探究照妖鏡 (2步對照) -->
+    <section class="slide" data-slide="10" data-total-steps="2">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🎯</span> 痛擊現場 · 探究自檢</div>
+        <h2 class="slide-title">你的探究與實作，是不是也戴著「木頭耳機」？</h2>
+        <div class="step-dots" id="dots-slide-10">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="feature-card reveal-step revealed" data-step="1" style="border-left: 8px solid var(--rose);">
+          <span class="pill pill-rose">貨物崇拜（假科學惡習）</span>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 18px; font-size: 1.4rem; color: #cbd5e1;">
+            <li>❌ <strong>偷刪離群值</strong>：看到不漂亮的點直接按 Delete，假裝一切很完美。</li>
+            <li>❌ <strong>先射箭再畫靶</strong>：結論必須吻合課本公式，實驗只為了「湊答案」。</li>
+            <li>❌ <strong>隱匿失敗數據</strong>：只放成功的 2 次，隱瞞失敗的 8 次。</li>
+            <li>❌ <strong>把排版當科學</strong>：圖表非常炫砲，但底層物理意義一片空白。</li>
+          </ul>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="2" style="border-left: 8px solid var(--green);">
+          <span class="pill pill-green">正統探究（科學誠實姿態）</span>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 18px; font-size: 1.4rem; color: #cbd5e1;">
+            <li>✅ <strong>保留異常並探討</strong>：離群點往往隱藏未控制的關鍵干擾變因！</li>
+            <li>✅ <strong>誠實面對假說破產</strong>：證明「這條路走不通」，本身就是巨大貢獻。</li>
+            <li>✅ <strong>公開實驗局限</strong>：主動把儀器誤差與操作限制攤在陽光下。</li>
+            <li>✅ <strong>第一原則深植心中</strong>：寧交有瑕疵的真數據，不交美化的精美贗品！</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: 科學光譜全景圖 (5步聚焦) -->
+    <section class="slide" data-slide="11" data-total-steps="5">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🌈</span> 第四站 · 術語指南</div>
+        <h2 class="slide-title">科學光譜五重奏：你在哪一個頻段？</h2>
+        <div class="step-dots" id="dots-slide-11">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <button class="icon-btn" id="spec-tab-1" onclick="showSpectrumStep(1)" style="flex: 1; justify-content: center; font-size: 1.25rem;">反科學</button>
+        <button class="icon-btn" id="spec-tab-2" onclick="showSpectrumStep(2)" style="flex: 1; justify-content: center; font-size: 1.25rem;">偽科學</button>
+        <button class="icon-btn" id="spec-tab-3" onclick="showSpectrumStep(3)" style="flex: 1; justify-content: center; font-size: 1.25rem;">貨物崇拜</button>
+        <button class="icon-btn" id="spec-tab-4" onclick="showSpectrumStep(4)" style="flex: 1; justify-content: center; font-size: 1.25rem;">原科學/邊緣科學</button>
+        <button class="icon-btn" id="spec-tab-5" onclick="showSpectrumStep(5)" style="flex: 1; justify-content: center; font-size: 1.25rem;">正統科學</button>
+      </div>
+
+      <div class="feature-card" id="spec-detail-box" style="flex: 1; justify-content: center; padding: 40px; background: rgba(15,23,42,0.92); border: 2px solid var(--cyan);">
+        <div id="spec-dynamic-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: 嘉中 201 破案挑戰賽 -->
+    <section class="slide" data-slide="12" data-total-steps="1">
+      <div class="slide-header">
+        <div class="slide-tag"><span>⚔️</span> 實戰大擂台 · 探案判官</div>
+        <h2 class="slide-title">嘉中 201 破案挑戰賽</h2>
+      </div>
+      <div class="sim-panel" style="flex: 1; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span class="badge" id="quiz-progress" style="font-size: 1.2rem; padding: 6px 18px;">第 1 / 4 題</span>
+            <span style="font-weight: 800; color: var(--amber); font-size: 1.4rem;" id="quiz-score">得分：0 分</span>
+          </div>
+          <h3 id="quiz-question-text" style="font-size: 1.8rem; color: #ffffff; line-height: 1.5; min-height: 80px;">
+            題目載入中...
+          </h3>
+        </div>
+
+        <div id="quiz-options-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        </div>
+
+        <div id="quiz-feedback-box" style="padding: 16px 24px; border-radius: 14px; background: rgba(0,0,0,0.5); min-height: 60px; font-size: 1.35rem; display: flex; align-items: center;">
+          請點擊上方選項進行破案判定...
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: 終局武器交付 (2步) -->
+    <section class="slide" data-slide="13" data-total-steps="2">
+      <div class="slide-header">
+        <div class="slide-tag"><span>🛡️</span> 終局裝備 · 隨身武器</div>
+        <h2 class="slide-title">帶出教室的防身武器：科學偵測雙稜鏡</h2>
+        <div class="step-dots" id="dots-slide-13">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="feature-card reveal-step revealed" data-step="1" style="border: 3px solid var(--cyan); background: rgba(0,242,254,0.08);">
+          <span class="pill pill-cyan">第一稜鏡 · 照對手</span>
+          <h3 style="font-size: 2.1rem; color: var(--cyan);">波普爾之鏡（可證偽性）</h3>
+          <p style="font-size: 1.45rem; line-height: 1.8; color: #cbd5e1; margin-top: 12px;">
+            <strong>靈魂提問句：</strong><br>
+            <span style="font-size: 1.6rem; color: #ffffff; font-weight: 800;">「請問在什麼具體條件下，你會承認你的主張是錯的？」</span><br><br>
+            👉 如果對方答不出來，或永遠有藉口圓場（水逆、能量不純、你心不誠）：<br>
+            <strong style="color: var(--rose);">直接判定：偽科學，慢走不送！</strong>
+          </p>
+        </div>
+
+        <div class="feature-card reveal-step" data-step="2" style="border: 3px solid var(--amber); background: rgba(245,158,11,0.08);">
+          <span class="pill pill-amber">第二稜鏡 · 照自己</span>
+          <h3 style="font-size: 2.1rem; color: var(--amber);">費曼之鏡（不自欺的誠實）</h3>
+          <p style="font-size: 1.45rem; line-height: 1.8; color: #cbd5e1; margin-top: 12px;">
+            <strong>靈魂提問句：</strong><br>
+            <span style="font-size: 1.6rem; color: #ffffff; font-weight: 800;">「我有沒有把我所知道不利於我假設的疑點，全交代清楚？」</span><br><br>
+            👉 寫探究報告時，主動把儀器極限與可能漏洞交代清楚：<br>
+            <strong style="color: var(--green);">這不是扣分，這是最高貴的科學品格！</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: 結語與收束 -->
+    <section class="slide" data-slide="14" data-total-steps="1">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 28px;">
+        <span class="pill pill-green" style="font-size: 1.25rem; padding: 8px 26px;">敬！敢於承認自己錯了的勇者</span>
+        <h2 style="font-size: 3.4rem; font-weight: 900; line-height: 1.3; max-width: 1000px; background: linear-gradient(135deg, #ffffff, #10b981, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          科學不是標準答案，<br>而是一套勇敢修正自己的思考工具！
+        </h2>
+        <div style="max-width: 850px; font-size: 1.55rem; line-height: 1.8; color: #cbd5e1;">
+          「摘下那副木頭耳機，不要再為虛假的飛機祈禱。<br>
+          當嘉中 201 的每位同學都敢誠實面對數據的瑕疵，<br>真正的科學發現，就在那裡誕生。」
+        </div>
+        <div style="display: flex; gap: 20px; margin-top: 12px;">
+          <button class="sim-btn" onclick="fireConfettiEffect(); soundEngine.playTada();" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 1.35rem; padding: 16px 40px;">
+            🎉 領取科學偵探徽章 (放煙火)
+          </button>
+          <button class="icon-btn" onclick="deck.goTo(1)" style="font-size: 1.25rem; padding: 16px 30px;">
+            🔄 重新回顧短講
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <footer id="bottom-bar">
+    <button class="nav-btn" id="btn-prev" onclick="deck.stepBackward()">
+      <span>◀</span> 上一步
+    </button>
+    <div class="progress-track">
+      <div id="progress-fill"></div>
+    </div>
+    <div style="font-size: 1.2rem; font-weight: 800; color: var(--blue); min-width: 140px; text-align: center;" id="slide-number">
+      1 / 14 (步 1/1)
+    </div>
+    <button class="nav-btn" id="btn-next" onclick="deck.stepForward()">
+      下一步 <span>▶</span>
+    </button>
+  </footer>
+
+  <!-- Speaker Notes Modal -->
+  <aside id="notes-modal">
+    <div class="notes-header">
+      <div class="notes-title">
+        <span>📋</span> 講者口語備忘稿 (Speaker Notes)
+      </div>
+      <button class="icon-btn" onclick="toggleNotes()" style="padding: 4px 12px;">✕</button>
+    </div>
+    <div class="notes-body" id="notes-content">
+      載入中...
+    </div>
+  </aside>
+
+  <script>
+    /* ==========================================================================
+       Audio Engine (Web Audio API Synthesizer)
+       ========================================================================== */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playClick() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+      playStepReveal() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      }
+      playSuccess() {
+        if (this.muted) return;
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          const t = this.ctx.currentTime + i * 0.08;
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        });
+      }
+      playError() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(90, this.ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.3);
+      }
+      playTada() {
+        if (this.muted) return;
+        this.init();
+        const chords = [523.25, 659.25, 783.99, 1046.50];
+        chords.forEach((freq) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 1.2);
+        });
+      }
+    }
+    const soundEngine = new AudioEngine();
+
+    /* ==========================================================================
+       Speaker Notes
+       ========================================================================== */
+    const speakerNotes = {
+      1: `<strong>【開場破冰 · 1.5 分鐘】</strong><br>
+・話術：「嘉中 201 班同學好！做探究實作時，有圖表、有數據就是科學嗎？今天我們用 15 分鐘，揭開一場跨越 2000 年的真假科學大冒險！」`,
+      2: `<strong>【Hook 衝突 · 2 分鐘】（3 步揭示）</strong><br>
+・第 1 步：看量子手環，名詞高深卻賣 $3990。<br>
+・第 2 步：看偷改數據的探究 A+ 報告。<br>
+・第 3 步：震撼公布「兩者都是假科學！科學看的是求真靈魂！」`,
+      3: `<strong>【GPS 導航 · 1 分鐘】（4 步聚焦）</strong><br>
+・逐一揭示今天四個大關卡：字源考古 ➔ 波普爾之刀 ➔ 費曼照妖鏡 ➔ 實戰雙稜鏡。`,
+      4: `<strong>【字源考古 · 2 分鐘】（4 步演進）</strong><br>
+・第 1 步：希臘亞里斯多德 Episteme（有系統真知）vs Doxa（憑感覺主觀）。<br>
+・第 2 步：羅馬 Scientia（去知道的意志）。<br>
+・第 3 步：1833 休厄爾首創 Scientist。<br>
+・第 4 步：1874 日本西周翻譯為「分科之學」。`,
+      5: `<strong>【分界問題 · 2.5 分鐘】（3 步對比）</strong><br>
+・第 1 步：科學（敢於冒被證偽的風險，愛因斯坦日全蝕預測）。<br>
+・第 2 步：非科學（文學藝術，不可證偽但有巨大價值，不需用科學度量）。<br>
+・第 3 步：偽科學（明明不可證偽卻假裝科學，永遠有藉口圓場）。`,
+      6: `<strong>【黑天鵝實驗 · 1.5 分鐘】</strong><br>
+・連續點擊觀測白天鵝，再點擊召喚黑天鵝！體會「百萬隻白天鵝不能徹底證實理論，但一隻黑天鵝瞬間證偽」的邏輯力量！`,
+      7: `<strong>【費曼貨物崇拜 · 2 分鐘】（2 步直擊）</strong><br>
+・第 1 步：南太平洋島民蓋竹子跑道、戴木頭耳機，飛機永遠不來！<br>
+・第 2 步：費曼痛批：許多研究只做表面功夫，缺乏科學誠實，就是貨物崇拜！`,
+      8: `<strong>【跑道實測 · 1.5 分鐘】</strong><br>
+・勾選全部儀式，發送信號召喚飛機，體驗飛機沒有來的警醒！`,
+      9: `<strong>【密立根油滴 · 2 分鐘】</strong><br>
+・拖動滑桿看 1910~1935 年科學家集體向權威低頭的自欺歷史，最後引出「費曼第一原則」！`,
+      10: `<strong>【探究現場照妖鏡 · 2 分鐘】（2 步對照）</strong><br>
+・第 1 步：痛陳 4 大假科學惡習（刪離群值、先射箭再畫靶、隱匿失敗、只重排版）。<br>
+・第 2 步：交付 4 大正統探究姿態（保留異常、誠實認錯、公開限制、絕不自欺）。`,
+      11: `<strong>【科學光譜 · 1.5 分鐘】（5 步切換）</strong><br>
+・點擊按鈕逐一檢視反科學、偽科學、貨物崇拜、邊緣科學與正統科學。`,
+      12: `<strong>【破案大擂台 · 2.5 分鐘】</strong><br>
+・4 題實戰情境搶答，現場鍛鍊破案直覺！`,
+      13: `<strong>【終局武器交付 · 1.5 分鐘】（2 步解鎖）</strong><br>
+・第 1 步：波普爾之鏡（照對手：什麼條件下你承認自己錯？）。<br>
+・第 2 步：費曼之鏡（照自己：不利於我的疑點我老實交代了嗎？）。`,
+      14: `<strong>【震撼結語 · 1 分鐘】</strong><br>
+・科學不是標準答案，而是敢於修正自己的勇氣！放煙火慶祝！`
+    };
+
+    /* ==========================================================================
+       Deck Controller with Progressive Sub-step Engine
+       ========================================================================== */
+    class DeckController {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.total = this.slides.length;
+        this.current = 1;
+        this.currentStep = 1;
+
+        this.progressFill = document.getElementById('progress-fill');
+        this.slideNumber = document.getElementById('slide-number');
+        this.btnPrev = document.getElementById('btn-prev');
+        this.btnNext = document.getElementById('btn-next');
+      }
+
+      init() {
+        this.updateSlideView();
+        this.bindEvents();
+      }
+
+      getCurrentSlideEl() {
+        return this.slides[this.current - 1];
+      }
+
+      getTotalSteps() {
+        const el = this.getCurrentSlideEl();
+        return parseInt(el.getAttribute('data-total-steps') || '1', 10);
+      }
+
+      stepForward() {
+        const totalSteps = this.getTotalSteps();
+        if (this.currentStep < totalSteps) {
+          this.currentStep++;
+          soundEngine.playStepReveal();
+          this.updateSubStepUI();
+        } else {
+          if (this.current < this.total) {
+            this.goToSlide(this.current + 1, 1);
+          }
+        }
+      }
+
+      stepBackward() {
+        if (this.currentStep > 1) {
+          this.currentStep--;
+          soundEngine.playClick();
+          this.updateSubStepUI();
+        } else {
+          if (this.current > 1) {
+            const prevSlideEl = this.slides[this.current - 2];
+            const prevTotalSteps = parseInt(prevSlideEl.getAttribute('data-total-steps') || '1', 10);
+            this.goToSlide(this.current - 1, prevTotalSteps);
+          }
+        }
+      }
+
+      goToSlide(index, startStep = 1) {
+        if (index < 1 || index > this.total) return;
+        this.slides[this.current - 1].classList.remove('active');
+        this.current = index;
+        this.currentStep = startStep;
+        this.slides[this.current - 1].classList.add('active');
+        soundEngine.playClick();
+        this.updateSlideView();
+      }
+
+      updateSlideView() {
+        const pct = ((this.current - 1) / (this.total - 1)) * 100;
+        this.progressFill.style.width = `${pct}%`;
+        this.btnPrev.disabled = (this.current === 1 && this.currentStep === 1);
+
+        const note = speakerNotes[this.current] || '本頁無特定備忘。';
+        document.getElementById('notes-content').innerHTML = note;
+
+        this.updateSubStepUI();
+
+        // Special triggers
+        if (this.current === 11) {
+          showSpectrumStep(this.currentStep);
+        }
+        if (this.current === this.total) {
+          setTimeout(() => {
+            fireConfettiEffect();
+            soundEngine.playTada();
+          }, 300);
+        }
+      }
+
+      updateSubStepUI() {
+        const slideEl = this.getCurrentSlideEl();
+        const totalSteps = this.getTotalSteps();
+        this.slideNumber.textContent = `${this.current} / ${this.total} (步 ${this.currentStep}/${totalSteps})`;
+
+        // Update step dots
+        const dotsBox = slideEl.querySelector('.step-dots');
+        if (dotsBox) {
+          const dots = dotsBox.querySelectorAll('.step-dot');
+          dots.forEach((d, i) => {
+            if (i < this.currentStep) {
+              d.classList.add('active');
+            } else {
+              d.classList.remove('active');
+            }
+          });
+        }
+
+        // Update reveal items
+        const revealItems = slideEl.querySelectorAll('.reveal-step');
+        revealItems.forEach(item => {
+          const stepVal = parseInt(item.getAttribute('data-step') || '1', 10);
+          if (stepVal <= this.currentStep) {
+            item.classList.add('revealed');
+            if (stepVal === this.currentStep && totalSteps > 1) {
+              item.classList.add('focused');
+              item.classList.remove('dimmed');
+            } else if (stepVal < this.currentStep && totalSteps > 1) {
+              item.classList.remove('focused');
+              item.classList.add('dimmed');
+            }
+          } else {
+            item.classList.remove('revealed', 'focused', 'dimmed');
+          }
+        });
+
+        // Special logic for Slide 11 spectrum
+        if (this.current === 11) {
+          showSpectrumStep(this.currentStep);
+        }
+      }
+
+      bindEvents() {
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+            e.preventDefault();
+            this.stepForward();
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            this.stepBackward();
+          } else if (e.key.toLowerCase() === 'f') {
+            toggleFullscreen();
+          } else if (e.key.toLowerCase() === 'p') {
+            toggleNotes();
+          } else if (e.key.toLowerCase() === 'm') {
+            toggleAudio();
+          }
+        });
+      }
+    }
+
+    const deck = new DeckController();
+    deck.init();
+
+    /* ==========================================================================
+       Audio & Notes Helpers
+       ========================================================================== */
+    function toggleAudio() {
+      soundEngine.muted = !soundEngine.muted;
+      const btn = document.getElementById('btn-audio');
+      btn.textContent = soundEngine.muted ? '🔇 音效: 關' : '🔊 音效: 開';
+    }
+
+    function toggleNotes() {
+      const modal = document.getElementById('notes-modal');
+      modal.classList.toggle('show');
+      soundEngine.playClick();
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.getElementById('btn-audio').onclick = toggleAudio;
+    document.getElementById('btn-notes').onclick = toggleNotes;
+    document.getElementById('btn-fullscreen').onclick = toggleFullscreen;
+
+    /* ==========================================================================
+       Slide 6: Swan Simulator
+       ========================================================================== */
+    let swanCount = 0;
+    function addSwans(n) {
+      soundEngine.playClick();
+      swanCount += n;
+      document.getElementById('swan-counter').textContent = `${swanCount} 隻白天鵝`;
+      const lake = document.getElementById('swan-lake');
+      if (swanCount === n) lake.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const span = document.createElement('span');
+        span.textContent = '🦢';
+        span.style.fontSize = '1.8rem';
+        span.style.filter = 'drop-shadow(0 0 4px rgba(255,255,255,0.8))';
+        lake.appendChild(span);
+      }
+    }
+
+    function triggerBlackSwan() {
+      soundEngine.playError();
+      const lake = document.getElementById('swan-lake');
+      lake.innerHTML = '';
+      for (let i = 0; i < 15; i++) {
+        const span = document.createElement('span');
+        span.textContent = '🦢';
+        span.style.fontSize = '1.8rem';
+        lake.appendChild(span);
+      }
+      const black = document.createElement('span');
+      black.textContent = '🦅';
+      black.style.fontSize = '2.8rem';
+      black.style.filter = 'drop-shadow(0 0 12px #ff007f)';
+      lake.appendChild(black);
+
+      document.getElementById('swan-counter').innerHTML = `<span style="color: var(--rose);">發現澳洲黑天鵝！</span>`;
+      document.getElementById('swan-theory-status').innerHTML = `
+        <span class="pill pill-rose">假說瞬間粉碎！</span>
+        <h3 style="font-size: 2.2rem; color: var(--rose); margin: 12px 0;">理論被一擊證偽 (Falsified)！</h3>
+        <p style="line-height: 1.8; color: #ffffff; font-size: 1.45rem;">
+          100,000 隻白天鵝建立的美麗假說，在看見一隻黑天鵝的 0.1 秒內宣告破產！<br><br>
+          <strong>波普爾的核心主張：</strong>科學從來不是不可動搖的絕對真理，而是永遠歡迎反證來修正的「敢錯假說」！
+        </p>
+      `;
+    }
+
+    /* ==========================================================================
+       Slide 8: Runway Simulator
+       ========================================================================== */
+    function runCargoPlaneSim() {
+      const c1 = document.getElementById('chk-runway').checked;
+      const c2 = document.getElementById('chk-tower').checked;
+      const c3 = document.getElementById('chk-headphone').checked;
+      const c4 = document.getElementById('chk-faith').checked;
+
+      const radar = document.getElementById('plane-radar-box');
+      const icon = document.getElementById('plane-icon');
+      const title = document.getElementById('plane-status-title');
+      const desc = document.getElementById('plane-status-desc');
+
+      if (!c1 || !c2 || !c3 || !c4) {
+        soundEngine.playError();
+        alert('請先在左側勾選所有「貨物崇拜」的準備儀式！');
+        return;
+      }
+
+      soundEngine.playClick();
+      icon.textContent = '⏳';
+      title.textContent = '信號發送中，雷達掃描...';
+      desc.textContent = '原住民戴著木頭耳機合十祈禱，天空遠方傳來微弱風聲...';
+      radar.style.borderColor = 'var(--amber)';
+
+      setTimeout(() => {
+        soundEngine.playError();
+        icon.textContent = '❌';
+        title.textContent = '飛機沒有降落！';
+        title.style.color = 'var(--rose)';
+        desc.innerHTML = `
+          <strong style="color: var(--amber); font-size: 1.6rem;">費曼的警世寓言：</strong><br><br>
+          「你的跑道很平、竹子塔台很真、木頭耳機雕刻得惟妙惟肖。<br>
+          但飛機不會因為你的外表而降落，因為最關鍵的<strong>電路、雷達與發動機原理</strong>根本不存在！」
+        `;
+        radar.style.borderColor = 'var(--rose)';
+      }, 1500);
+    }
+
+    /* ==========================================================================
+       Slide 9: Millikan Slider
+       ========================================================================== */
+    const millikanTimeline = {
+      1910: { val: '1.592 × 10⁻¹⁹ C', note: '密立根發表著名論文，奠定電子電荷權威地位（但空氣黏滯度基準偏小）。' },
+      1915: { val: '1.594 × 10⁻¹⁹ C', note: '後續科學家測出較大數值，但害怕質疑大師，自行篩選數據向密立根靠攏。' },
+      1920: { val: '1.597 × 10⁻¹⁹ C', note: '數據緩慢爬升。若測太高，學者會懷疑自己儀器漏電或操作失誤。' },
+      1925: { val: '1.599 × 10⁻¹⁹ C', note: '越來越多學者測出高數值，學界才開始懷疑當初的空氣黏滯度基準。' },
+      1930: { val: '1.601 × 10⁻¹⁹ C', note: '歷經 20 年的集體心理掙扎，實驗數據終於逼近現代公認真實數值。' },
+      1935: { val: '1.602 × 10⁻¹⁹ C', note: '【現代真理】整整花了 25 年，科學界才從「盲從大師」的自我欺騙中醒來！' }
+    };
+
+    function updateMillikanSim(year) {
+      soundEngine.playClick();
+      document.getElementById('slider-year').textContent = year;
+      const item = millikanTimeline[year] || millikanTimeline[1910];
+      document.getElementById('millikan-val').textContent = item.val;
+      document.getElementById('millikan-psychology').textContent = `🧠 [${year} 年記錄] ${item.note}`;
+    }
+
+    /* ==========================================================================
+       Slide 11: Spectrum Steps
+       ========================================================================== */
+    const specData = {
+      1: {
+        pill: '反科學 (Anti-science)',
+        color: 'var(--rose)',
+        title: '公開否定科學方法與既有科學共識',
+        desc: '典型案例：地平說（堅信地球是平的、NASA 都是演員）、反疫苗運動。<br><br>特色：不是用更嚴謹的實驗去質疑，而是出於宗教、政治或商業利益，直接訴諸陰謀論與情感動員。'
+      },
+      2: {
+        pill: '偽科學 (Pseudoscience)',
+        color: 'var(--amber)',
+        title: '刻意模仿科學名詞，本質完全不可證偽',
+        desc: '典型案例：量子轉運手環、開運水晶、占星水逆、順勢療法。<br><br>特色：永遠立於不敗之地！預測中了是大師神準，預測不中是「你個人能量被干擾」，絕不承認理論有錯。'
+      },
+      3: {
+        pill: '貨物崇拜科學 / 壞科學 (Cargo Cult)',
+        color: 'var(--purple)',
+        title: '徒具精美格式與數據，丟失誠實與批判靈魂',
+        desc: '典型案例：高二探究報告偷偷刪除離群值、學術論文先射箭再畫靶、改數據湊答案。<br><br>特色：圖表、文獻、統計方法看似天衣無縫，但為了迎合結論隱匿反證，陷入自我欺騙。'
+      },
+      4: {
+        pill: '原科學 / 邊緣科學 (Protoscience & Fringe)',
+        color: 'var(--blue)',
+        title: '非主流或萌芽階段，但願意接受實驗檢驗',
+        desc: '典型案例：古代煉金術（催生現代化學）、魏格納剛提出的大陸漂移說（初期被譏笑，後來證實為板塊構造論）。<br><br>特色：雖然極具爭議，但它尊重證據並願意修正，有潛力晉升正統科學！'
+      },
+      5: {
+        pill: '正統科學 (Orthodox Science)',
+        color: 'var(--green)',
+        title: '具備可證偽性、接受嚴謹同儕審查與重複檢驗',
+        desc: '典型案例：牛頓力學、量子力學、廣義相對論、雙螺旋 DNA 結構。<br><br>特色：歡迎全世界拿儀器來挑戰！只要有一個經得起重複檢驗的反例，理論就必須更新升級。'
+      }
+    };
+
+    function showSpectrumStep(idx) {
+      for (let i = 1; i <= 5; i++) {
+        const tab = document.getElementById(`spec-tab-${i}`);
+        if (tab) {
+          if (i === idx) {
+            tab.style.borderColor = 'var(--cyan)';
+            tab.style.background = 'rgba(0, 242, 254, 0.25)';
+            tab.style.color = '#ffffff';
+          } else {
+            tab.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            tab.style.background = 'rgba(255, 255, 255, 0.06)';
+            tab.style.color = 'var(--text-muted)';
+          }
+        }
+      }
+
+      const d = specData[idx];
+      const box = document.getElementById('spec-dynamic-content');
+      if (box) {
+        box.innerHTML = `
+          <span class="pill" style="background: rgba(255,255,255,0.1); color: ${d.color}; border: 2px solid ${d.color}; font-size: 1.35rem;">${d.pill}</span>
+          <h3 style="font-size: 2.2rem; margin: 16px 0; color: #ffffff;">${d.title}</h3>
+          <p style="font-size: 1.55rem; line-height: 1.8; color: #cbd5e1;">${d.desc}</p>
+        `;
+      }
+    }
+
+    /* ==========================================================================
+       Slide 12: Quiz
+       ========================================================================== */
+    const quizData = [
+      {
+        q: '1. 占星大師說：「你今天若倒楣是水逆干擾；若今天很順利，代表你心存善念抵銷了煞氣。」這屬於？',
+        opts: ['正統科學', '偽科學 (不可證偽)', '邊緣科學', '原科學'],
+        ans: 1,
+        exp: '正解！無論發生什麼事他都能圓謊，完全無法被「證偽」，是教科書級的偽科學！'
+      },
+      {
+        q: '2. 高二某組做單擺實驗，週期跟公式差 0.3 秒，組長怕分數低，私下把數據改掉做出滿分線性圖。這屬於？',
+        opts: ['科學創新', '貨物崇拜科學', '非科學 (文學創作)', '反科學'],
+        ans: 1,
+        exp: '正解！複製了漂亮的圖表外殼，卻犯了費曼最痛恨的「自我欺騙」，正是貨物崇拜科學！'
+      },
+      {
+        q: '3. 1912 年魏格納提出「大陸漂移說」，當時所有權威地質學家都笑他是瘋子。這在當時屬於？',
+        opts: ['反科學', '偽科學', '邊緣科學 (Fringe Science)', '貨物崇拜'],
+        ans: 2,
+        exp: '正解！魏格納並非胡言亂語，他拿出化石與地層證據，雖在邊緣，但具備科學潛力，最終演變成板塊構造論！'
+      },
+      {
+        q: '4. 某國文老師寫了一首探討「AI 與人類靈魂孤獨」的新詩，感動無數人。這首詩屬於？',
+        opts: ['偽科學', '非科學 (Non-science)', '貨物崇拜', '反科學'],
+        ans: 1,
+        exp: '正解！文學本來就無意偽裝成科學，也不需要用實驗證偽。它是深具意義的「非科學」，值得尊重！'
+      }
+    ];
+
+    let currentQ = 0;
+    let quizScore = 0;
+
+    function renderQuiz() {
+      const q = quizData[currentQ];
+      document.getElementById('quiz-progress').textContent = `第 ${currentQ + 1} / ${quizData.length} 題`;
+      document.getElementById('quiz-score').textContent = `得分：${quizScore} 分`;
+      document.getElementById('quiz-question-text').textContent = q.q;
+
+      const optBox = document.getElementById('quiz-options-box');
+      optBox.innerHTML = '';
+      q.opts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'icon-btn';
+        btn.style.padding = '18px 24px';
+        btn.style.fontSize = '1.35rem';
+        btn.style.justifyContent = 'flex-start';
+        btn.innerHTML = `<span style="font-weight: 800; color: var(--cyan); margin-right: 12px;">[${String.fromCharCode(65 + idx)}]</span> ${opt}`;
+        btn.onclick = () => answerQuiz(idx);
+        optBox.appendChild(btn);
+      });
+      document.getElementById('quiz-feedback-box').innerHTML = '請點擊上方選項進行破案判定...';
+      document.getElementById('quiz-feedback-box').style.color = '#cbd5e1';
+    }
+
+    function answerQuiz(chosen) {
+      const q = quizData[currentQ];
+      const fb = document.getElementById('quiz-feedback-box');
+      if (chosen === q.ans) {
+        soundEngine.playSuccess();
+        quizScore += 25;
+        document.getElementById('quiz-score').textContent = `得分：${quizScore} 分`;
+        fb.innerHTML = `✅ <strong>太神了！</strong> ${q.exp}`;
+        fb.style.color = 'var(--green)';
+      } else {
+        soundEngine.playError();
+        fb.innerHTML = `❌ <strong>判斷失誤！</strong> ${q.exp}`;
+        fb.style.color = 'var(--rose)';
+      }
+
+      const btns = document.querySelectorAll('#quiz-options-box button');
+      btns.forEach(b => b.disabled = true);
+
+      setTimeout(() => {
+        if (currentQ < quizData.length - 1) {
+          currentQ++;
+          renderQuiz();
+        } else {
+          fb.innerHTML = `🏆 <strong>挑戰完成！你的最終成績：${quizScore} 分！</strong> ${quizScore >= 75 ? '榮獲「波普爾級特等探長」！' : '請再接再厲，多磨練科學偵測雙稜鏡！'}`;
+          soundEngine.playTada();
+        }
+      }, 2000);
+    }
+
+    renderQuiz();
+
+    /* ==========================================================================
+       Confetti System
+       ========================================================================== */
+    function fireConfettiEffect() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#00f2fe', '#38bdf8', '#f59e0b', '#ff416c', '#10b981', '#a855f7', '#ffffff'];
+
+      for (let i = 0; i < 180; i++) {
+        particles.push({
+          x: canvas.width * 0.5,
+          y: canvas.height * 0.55,
+          vx: (Math.random() - 0.5) * 26,
+          vy: (Math.random() - 0.7) * 30,
+          size: Math.random() * 10 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 14,
+          life: 1
+        });
+      }
+
+      let animId;
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = 0;
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.55;
+          p.rot += p.vRot;
+          p.life -= 0.012;
+          if (p.life > 0) {
+            active++;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rot * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            ctx.restore();
+          }
+        });
+        if (active > 0) {
+          animId = requestAnimationFrame(render);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          cancelAnimationFrame(animId);
+        }
+      }
+      render();
+    }
+
+    /* Ambient Background Starfield */
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    function resizeBg() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeBg);
+    resizeBg();
+
+    const stars = Array.from({ length: 60 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      radius: Math.random() * 1.8,
+      alpha: Math.random() * 0.7 + 0.2,
+      dy: (Math.random() - 0.5) * 0.2
+    }));
+
+    function drawStars() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      stars.forEach(s => {
+        s.y += s.dy;
+        if (s.y < 0) s.y = bgCanvas.height;
+        if (s.y > bgCanvas.height) s.y = 0;
+        bgCtx.beginPath();
+        bgCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        bgCtx.fillStyle = `rgba(56, 189, 248, ${s.alpha})`;
+        bgCtx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
+
+    // Iframe Detection for Google Sites Embedding
+    if (window.self !== window.top) {
+      const btnTab = document.getElementById('btn-open-tab');
+      if (btnTab) btnTab.style.display = 'flex';
+    }
+    // Auto focus when user clicks anywhere in presentation
+    window.addEventListener('click', () => {
+      window.focus();
+    });
+  </script>
+</body>
+</html>
