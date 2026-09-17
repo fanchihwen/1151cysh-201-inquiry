@@ -2,7 +2,7 @@
 
 - **Project**: 1151嘉中_201探究
 - **OKF Version**: 0.2
-- **Status**: Valid (有效)
+- **Status**: Enabled; incomplete index（已啟用；下列兩個知識頁尚不存在，2026-09-18 核對）
 - **Initialized**: 2026-09-18
 
 ## 常青知識與規範索引 (Evergreen Knowledge Index)
