@@ -460,6 +460,27 @@
       pointer-events: none;
       z-index: 999;
     }
+
+    /* Google Sites iframe full-bleed optimization */
+    body.in-iframe #deck-container {
+      padding: 6px 12px;
+    }
+    body.in-iframe .slide {
+      width: 99%;
+      max-width: 100%;
+      height: 95%;
+      max-height: 100%;
+      padding: 24px 36px;
+      border-radius: 16px;
+    }
+    body.in-iframe #top-bar {
+      height: 52px;
+      padding: 0 20px;
+    }
+    body.in-iframe #bottom-bar {
+      height: 62px;
+      padding: 0 24px;
+    }
   </style>
 </head>
 <body>
@@ -1698,6 +1719,7 @@
 
     // Iframe Detection for Google Sites Embedding
     if (window.self !== window.top) {
+      document.body.classList.add('in-iframe');
       const btnTab = document.getElementById('btn-open-tab');
       if (btnTab) btnTab.style.display = 'flex';
     }
